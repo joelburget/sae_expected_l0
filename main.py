@@ -15,6 +15,7 @@ sigmas = [0.01, 0.1, 1.0, 10.0, 100.0]
 l0_coefficients = [1e-3, 1e-2, 1e-1, 1.0, 10.0]
 expansion_factors = [8]
 learning_rates = [5e-6, 1e-5, 1e-4]
+training_tokens = 20_000_000
 
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = HookedTransformer.from_pretrained(model_name, device="cpu")
@@ -52,9 +53,11 @@ def train(model, sae, ds, learning_rate, l0_coefficient):
     criterion = nn.MSELoss()
 
     i = 0
+    total_tokens = 0
     for input in ds["train"]:
         input = input["text"]
         tokens = tokenizer(input)["input_ids"]
+        total_tokens += len(tokens)
         _, cache = model.run_with_cache(torch.tensor(tokens), remove_batch_dim=True)
         x = cache[hook_point]
 
@@ -77,6 +80,8 @@ def train(model, sae, ds, learning_rate, l0_coefficient):
                 }
             )
         i += 1
+        if total_tokens > training_tokens:
+            break
 
 
 if __name__ == "__main__":
