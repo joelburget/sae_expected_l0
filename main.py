@@ -15,7 +15,7 @@ sigmas = [0.01, 0.1, 1.0, 10.0, 100.0]
 l0_coefficients = [1e-3, 1e-2, 1e-1, 1.0, 10.0]
 expansion_factors = [8]
 learning_rates = [5e-6, 1e-5, 1e-4]
-training_tokens = 20_000_000
+training_tokens = 8_000_000
 
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = HookedTransformer.from_pretrained(model_name, device="cpu")
