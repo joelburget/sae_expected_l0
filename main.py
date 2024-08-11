@@ -77,6 +77,7 @@ def train(model, sae, ds, learning_rate, l0_coefficient):
                     "loss": loss.item(),
                     "reconstruction_loss": reconstruction_loss.item(),
                     "l0_loss": l0_loss.item(),
+                    "total_tokens": total_tokens,
                 }
             )
         i += 1
