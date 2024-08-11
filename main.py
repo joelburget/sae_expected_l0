@@ -105,4 +105,13 @@ if __name__ == "__main__":
                     hidden_dim = input_dim * expansion_factor
                     sae = SparseAutoencoder(input_dim, hidden_dim, sigma)
                     train(model, sae, ds, learning_rate, l0_coefficient)
+
+                    sae_save_path = "sae.pth"
+                    torch.save(sae.state_dict(), sae_save_path)
+                    wandb.save(sae_save_path)
+                    artifact = wandb.Artifact(
+                        f"sae-{sigma}-{l0_coefficient}-{expansion_factor}-{learning_rate}",
+                        type="model",
+                    )
+                    artifact.add_file(sae_save_path)
                     wandb.finish()
