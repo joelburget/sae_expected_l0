@@ -14,7 +14,7 @@ expansion_factor = 8
 training_tokens = 8_000_000
 
 tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = HookedTransformer.from_pretrained(model_name)
+model = HookedTransformer.from_pretrained(model_name, device="cuda")
 ds = load_dataset(ds_name)
 
 input_dim = model.cfg.d_model
@@ -73,7 +73,7 @@ def train(config=None):
                 tokens = tokenizer(input)["input_ids"]
                 total_tokens += len(tokens)
                 _, cache = model.run_with_cache(
-                    torch.tensor(tokens), remove_batch_dim=True
+                    torch.tensor(tokens, device="cuda"), remove_batch_dim=True
                 )
                 x = cache[hook_point]
 
