@@ -63,6 +63,7 @@ def train(config=None):
         hidden_dim = input_dim * expansion_factor
 
         sae = SparseAutoencoder(input_dim, hidden_dim, sigma)
+        sae.to("cuda")
         optimizer = torch.optim.Adam(sae.parameters(), lr=learning_rate)
         criterion = nn.MSELoss()
 
