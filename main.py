@@ -65,7 +65,6 @@ def train(config=None):
         sae = SparseAutoencoder(input_dim, hidden_dim, sigma)
         sae.to("cuda")
         optimizer = torch.optim.Adam(sae.parameters(), lr=learning_rate)
-        criterion = nn.MSELoss()
 
         i, total_tokens = 0, 0
         for input in ds["train"]:
@@ -80,7 +79,7 @@ def train(config=None):
 
                 x_hat, h = sae(x)
 
-                reconstruction_loss = criterion(x_hat, x)
+                reconstruction_loss = F.mse_loss(x_hat, x)
                 l0_loss = sae.expected_l0_loss(h)
                 loss = reconstruction_loss + l0_coefficient * l0_loss
 
