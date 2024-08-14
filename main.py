@@ -52,6 +52,13 @@ class SparseAutoencoder(nn.Module):
         return prob_non_zero.sum()
 
 
+# From https://transformer-circuits.pub/2023/monosemantic-features/index.html#appendix-autoencoder-optimization:
+# "We find that instead removing any gradient information parallel to our dictionary vectors before applying the gradient step results in a small but real reduction in total loss."
+def remove_parallel_gradient(weights):
+    parallel_component = (weights.grad * weights).sum(dim=1, keepdim=True) * weights
+    weights.grad -= parallel_component
+
+
 def train(config=None):
     with wandb.init(config=config):
         config = wandb.config
@@ -83,6 +90,10 @@ def train(config=None):
 
                 optimizer.zero_grad()
                 loss.backward()
+
+                remove_parallel_gradient(sae.encoder.weight)
+                remove_parallel_gradient(sae.decoder.weight)
+
                 optimizer.step()
 
                 log_info = {
