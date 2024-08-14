@@ -1,0 +1,2 @@
+sae-vis >= 0.2.21
+jupyterlab >= 4.2

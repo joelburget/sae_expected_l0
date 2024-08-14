@@ -1,5 +1,5 @@
 transformer_lens
-torch==2.4.0
-datasets==2.20.0
-transformers==4.44.0
-wandb==0.17.6
+torch >= 2.2
+datasets >= 2.20
+transformers >= 4.42
+wandb >= 0.17.6
