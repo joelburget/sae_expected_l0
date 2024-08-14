@@ -41,16 +41,14 @@ class SparseAutoencoder(nn.Module):
         self.sigma = sigma
 
     def forward(self, x):
-        h = self.encoder(x)
-        a = F.relu(h)
+        pre_activation = self.encoder(x)
+        a = F.relu(pre_activation)
         x_hat = self.decoder(a)
-        return x_hat, h
+        return x_hat, pre_activation
 
-    def expected_l0_loss(self, h):
-        W1 = self.encoder.weight
-        mu = h  # (mu is just the pre-activations)
-        sigma = self.sigma * torch.sqrt((W1**2).sum(dim=1))
-        prob_non_zero = 1 - normal.cdf(-mu / sigma)
+    def expected_l0_loss(self, pre_activation):
+        sigma = self.sigma * torch.sqrt((self.encoder.weight**2).sum(dim=1))
+        prob_non_zero = 1 - normal.cdf(-pre_activation / sigma)
         return prob_non_zero.sum()
 
 
@@ -77,10 +75,10 @@ def train(config=None):
                 )
                 x = cache[hook_point]
 
-                x_hat, h = sae(x)
+                x_hat, pre_activation = sae(x)
 
                 reconstruction_loss = F.mse_loss(x_hat, x)
-                l0_loss = sae.expected_l0_loss(h)
+                l0_loss = sae.expected_l0_loss(pre_activation)
                 loss = reconstruction_loss + l0_coefficient * l0_loss
 
                 optimizer.zero_grad()
