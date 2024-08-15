@@ -13,8 +13,10 @@ ds_name = "roneneldan/TinyStories"
 expansion_factor = 8
 training_tokens = 8_000_000
 
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
 tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = HookedTransformer.from_pretrained(model_name, device="cuda")
+model = HookedTransformer.from_pretrained(model_name, device=device)
 ds = load_dataset(ds_name)
 
 input_dim = model.cfg.d_model
@@ -68,7 +70,7 @@ def train(config=None):
         hidden_dim = input_dim * expansion_factor
 
         sae = SparseAutoencoder(input_dim, hidden_dim, sigma)
-        sae.to("cuda")
+        sae.to(device)
         optimizer = torch.optim.Adam(sae.parameters(), lr=learning_rate)
 
         i, total_tokens = 0, 0
@@ -78,7 +80,7 @@ def train(config=None):
                 tokens = tokenizer(input)["input_ids"]
                 total_tokens += len(tokens)
                 _, cache = model.run_with_cache(
-                    torch.tensor(tokens, device="cuda"), remove_batch_dim=True
+                    torch.tensor(tokens, device=device), remove_batch_dim=True
                 )
                 x = cache[hook_point]
 
