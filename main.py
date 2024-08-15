@@ -92,7 +92,7 @@ def train(config=None):
                 loss.backward()
 
                 remove_parallel_gradient(sae.encoder.weight)
-                remove_parallel_gradient(sae.decoder.weight)
+                sae.encoder.weight /= sae.encoder.weight.norm(dim=1, keepdim=True)
 
                 optimizer.step()
 
@@ -123,5 +123,7 @@ def train(config=None):
 
 
 if __name__ == "__main__":
-    sweep_id = wandb.sweep(sweep=sweep_configuration, project="sae-expected-l0-sweep")
+    sweep_id = wandb.sweep(
+        sweep=sweep_configuration, project="sae-expected-l0-sweep-norm"
+    )
     wandb.agent(sweep_id, train, count=10)
