@@ -47,8 +47,8 @@ class SparseAutoencoder(nn.Module):
         return x_hat, pre_activation
 
     def expected_l0_loss(self, pre_activation):
-        sigma = self.sigma * torch.sqrt((self.encoder.weight**2).sum(dim=1))
-        prob_non_zero = 1 - normal.cdf(-pre_activation / sigma)
+        stddevs = self.sigma * torch.sqrt((self.encoder.weight**2).sum(dim=1))
+        prob_non_zero = 1 - normal.cdf(-pre_activation / stddevs)
         return prob_non_zero.sum()
 
 
