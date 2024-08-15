@@ -92,7 +92,9 @@ def train(config=None):
                 loss.backward()
 
                 remove_parallel_gradient(sae.encoder.weight)
-                sae.encoder.weight /= sae.encoder.weight.norm(dim=1, keepdim=True)
+                sae.encoder.weight = sae.encoder.weight / sae.encoder.weight.norm(
+                    dim=1, keepdim=True
+                )
 
                 optimizer.step()
 
