@@ -28,7 +28,7 @@ sweep_configuration = {
     "method": "bayes",
     "metric": {"goal": "minimize", "name": "loss"},
     "parameters": {
-        "l0_coefficient": {"min": 5e-4, "max": 0.1},
+        "l0_coefficient": {"min": 8e-6, "max": 1e-4},  # e.g. 0.0412 / 2000 = 0.00002
         "stddev_prior": {"min": 0.01, "max": 100.0},
         "learning_rate": {"min": 1e-5, "max": 5e-3},
     },
