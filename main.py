@@ -29,18 +29,18 @@ sweep_configuration = {
     "metric": {"goal": "minimize", "name": "loss"},
     "parameters": {
         "l0_coefficient": {"min": 5e-4, "max": 0.1},
-        "sigma": {"min": 0.01, "max": 100.0},
+        "stddev_prior": {"min": 0.01, "max": 100.0},
         "learning_rate": {"min": 1e-5, "max": 5e-3},
     },
 }
 
 
 class SparseAutoencoder(nn.Module):
-    def __init__(self, input_dim, hidden_dim, sigma):
+    def __init__(self, input_dim, hidden_dim, stddev_prior):
         super(SparseAutoencoder, self).__init__()
         self.encoder = nn.Linear(input_dim, hidden_dim)
         self.decoder = nn.Linear(hidden_dim, input_dim)
-        self.sigma = sigma
+        self.stddev_prior = stddev_prior
 
     def forward(self, x):
         pre_activation = self.encoder(x)
@@ -49,7 +49,7 @@ class SparseAutoencoder(nn.Module):
         return x_hat, pre_activation
 
     def expected_l0_loss(self, pre_activation):
-        stddevs = self.sigma * torch.sqrt((self.encoder.weight**2).sum(dim=1))
+        stddevs = self.stddev_prior * torch.sqrt((self.encoder.weight**2).sum(dim=1))
         prob_non_zero = 1 - normal.cdf(-pre_activation / stddevs)
         return prob_non_zero.sum()
 
@@ -66,10 +66,10 @@ def train(config=None):
         config = wandb.config
         learning_rate = config.learning_rate
         l0_coefficient = config.l0_coefficient
-        sigma = config.sigma
+        stddev_prior = config.stddev_prior
         hidden_dim = input_dim * expansion_factor
 
-        sae = SparseAutoencoder(input_dim, hidden_dim, sigma)
+        sae = SparseAutoencoder(input_dim, hidden_dim, stddev_prior)
         sae.to(device)
         optimizer = torch.optim.Adam(sae.parameters(), lr=learning_rate)
 
@@ -121,7 +121,7 @@ def train(config=None):
         torch.save(sae.state_dict(), sae_save_path)
         wandb.save(sae_save_path)
         artifact = wandb.Artifact(
-            f"sae-{sigma}-{l0_coefficient}-{expansion_factor}-{learning_rate}",
+            f"sae-{stddev_prior}-{l0_coefficient}-{expansion_factor}-{learning_rate}",
             type="model",
         )
         artifact.add_file(sae_save_path)
