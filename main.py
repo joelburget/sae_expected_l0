@@ -86,7 +86,8 @@ def train(config=None):
 
                 x_hat, pre_activation = sae(x)
 
-                reconstruction_loss = F.mse_loss(x_hat, x)
+                per_item_mse_loss = F.mse_loss(x, x_hat, reduction="none")
+                reconstruction_loss = per_item_mse_loss.sum(dim=-1).mean()
                 l0_loss = sae.expected_l0_loss(pre_activation)
                 loss = reconstruction_loss + l0_coefficient * l0_loss
 
