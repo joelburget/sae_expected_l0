@@ -94,8 +94,9 @@ def train(config=None):
                 loss.backward()
 
                 remove_parallel_gradient(sae.encoder.weight)
+                # normalize the *columns* of the encoder weight matrix
                 sae.encoder.weight = nn.Parameter(
-                    sae.encoder.weight / sae.encoder.weight.norm(dim=1, keepdim=True)
+                    sae.encoder.weight / sae.encoder.weight.norm(dim=0, keepdim=True)
                 )
 
                 optimizer.step()
