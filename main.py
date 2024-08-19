@@ -1,3 +1,4 @@
+import yaml
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -23,16 +24,6 @@ input_dim = model.cfg.d_model
 hook_point = "blocks.4.hook_resid_post"
 
 normal = Normal(0, 1)
-
-sweep_configuration = {
-    "method": "bayes",
-    "metric": {"goal": "minimize", "name": "loss"},
-    "parameters": {
-        "l0_coefficient": {"min": 8e-6, "max": 1e-4},  # e.g. 0.0412 / 2000 = 0.00002
-        "stddev_prior": {"min": 0.005, "max": 0.04},
-        "learning_rate": {"min": 1e-5, "max": 5e-3},
-    },
-}
 
 
 class SparseAutoencoder(nn.Module):
@@ -129,7 +120,6 @@ def train(config=None):
 
 
 if __name__ == "__main__":
-    sweep_id = wandb.sweep(
-        sweep=sweep_configuration, project="sae-expected-l0-sweep-norm"
-    )
-    wandb.agent(sweep_id, train, count=10)
+    with open("./config.yaml") as file:
+        config = yaml.load(file, Loader=yaml.FullLoader)
+        train(config)
