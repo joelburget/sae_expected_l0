@@ -9,8 +9,8 @@ parameters:
     min: 0.00001
     max: 0.005
   reconstruction_coefficient:
-    min: 4e4
-    max: 2e5
+    min: 40000.0
+    max: 200000.0
   stddev_prior:
     min: 0.005
     max: 0.04
