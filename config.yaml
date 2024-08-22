@@ -6,11 +6,11 @@ metric:
   name: loss
 parameters:
   learning_rate:
-    min: 0.00001
+    min: 0.001
     max: 0.005
   reconstruction_coefficient:
-    min: 40000.0
-    max: 200000.0
+    min: 10.0
+    max: 10_000_000.0
   stddev_prior:
-    min: 0.005
+    min: 0.001
     max: 0.04

@@ -56,7 +56,6 @@ def train(config=None):
     with wandb.init(config=config):
         config = wandb.config
         learning_rate = config.learning_rate
-        # l0_coefficient = config.l0_coefficient
         reconstruction_coefficient = config.reconstruction_coefficient
         stddev_prior = config.stddev_prior
         hidden_dim = input_dim * expansion_factor
@@ -81,7 +80,7 @@ def train(config=None):
                 per_item_mse_loss = F.mse_loss(x, x_hat, reduction="none")
                 reconstruction_loss = per_item_mse_loss.sum(dim=-1).mean()
                 l0_loss = sae.expected_l0_loss(pre_activation)
-                loss = reconstruction_loss + l0_loss
+                loss = reconstruction_coefficient * reconstruction_loss + l0_loss
 
                 optimizer.zero_grad()
                 loss.backward()
