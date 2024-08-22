@@ -8,9 +8,9 @@ parameters:
   learning_rate:
     min: 0.00001
     max: 0.005
-  l0_coefficient:
-    min: 0.000008
-    max: 0.0001 # e.g. 0.0412 / 2000 = 0.00002
+  reconstruction_coefficient:
+    min: 4e4
+    max: 2e5
   stddev_prior:
     min: 0.005
     max: 0.04
