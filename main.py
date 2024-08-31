@@ -45,12 +45,12 @@ class SparseAutoencoder(nn.Module):
         return prob_non_zero.sum()
 
 
-# From https://transformer-circuits.pub/2023/monosemantic-features/index.html#appendix-autoencoder-optimization:
-# "We find that instead removing any gradient information parallel to our dictionary vectors before applying the gradient step results in a small but real reduction in total loss."
-def remove_parallel_gradient(weights):
-    parallel_component = (weights.grad * weights).sum(dim=1, keepdim=True) * weights
-    weights.grad -= parallel_component
-
+# From [Tutorial: Implementing and Training JumpReLU SAEs.ipynb](https://colab.research.google.com/drive/1PlFzI_PWGTN9yCQLuBcSuPJUjgHL7GiD?usp=sharing#scrollTo=Zz0TwpNCuDOP)
+def remove_parallel_component(x, v):
+    """Returns x with component parallel to v projected away."""
+    v_normalised = v / (torch.norm(v, dim=-1, keepdim=True) + 1e-6)
+    parallel_component = torch.einsum("...d,...d->...", x, v_normalised)
+    return x - parallel_component[..., None] * v_normalised
 
 def train(config=None):
     with wandb.init(config=config):
@@ -85,13 +85,13 @@ def train(config=None):
                 optimizer.zero_grad()
                 loss.backward()
 
-                remove_parallel_gradient(sae.encoder.weight)
-                # normalize the *columns* of the encoder weight matrix
-                sae.encoder.weight = nn.Parameter(
-                    sae.encoder.weight / sae.encoder.weight.norm(dim=0, keepdim=True)
+                sae.decoder.weight.grad = remove_parallel_component(
+                    sae.decoder.weight.grad, sae.decoder.weight
                 )
-
                 optimizer.step()
+                sae.decoder.weight = nn.Parameter(
+                    sae.decoder.weight / sae.decoder.weight.norm(dim=-1, keepdim=True)
+                )
 
                 log_info = {
                     "loss": loss.item(),
