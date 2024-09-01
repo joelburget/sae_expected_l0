@@ -3,26 +3,23 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions.normal import Normal
-from transformers import AutoTokenizer
 from transformer_lens import HookedTransformer
 from datasets import load_dataset
 import wandb
 
-model_name = "roneneldan/TinyStories-1M"
-ds_name = "roneneldan/TinyStories"
-
-expansion_factor = 8
+# TODO: Gemma-2B
+model_name = "openai-community/gpt2"
+ds_name = "apollo-research/Skylion007-openwebtext-tokenizer-gpt2"
+wandb_model_name = "gpt2"
+# expansion_factor = 8
+hidden_dim = 32_768
 training_tokens = 8_000_000
+hook_point = "blocks.6.hook_resid_post"
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-
-tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = HookedTransformer.from_pretrained(model_name, device=device)
 ds = load_dataset(ds_name)
-
 input_dim = model.cfg.d_model
-hook_point = "blocks.4.hook_resid_post"
-
 normal = Normal(0, 1)
 
 
@@ -58,7 +55,7 @@ def train(config=None):
         learning_rate = config.learning_rate
         reconstruction_coefficient = config.reconstruction_coefficient
         stddev_prior = config.stddev_prior
-        hidden_dim = input_dim * expansion_factor
+        # hidden_dim = input_dim * expansion_factor
 
         sae = SparseAutoencoder(input_dim, hidden_dim, stddev_prior)
         sae.to(device)
@@ -67,8 +64,7 @@ def train(config=None):
         i, total_tokens = 0, 0
         for input in ds["train"]:
             try:
-                input = input["text"]
-                tokens = tokenizer(input)["input_ids"]
+                tokens = input["input_ids"]
                 total_tokens += len(tokens)
                 _, cache = model.run_with_cache(
                     torch.tensor(tokens, device=device), remove_batch_dim=True
@@ -80,7 +76,7 @@ def train(config=None):
                 per_item_mse_loss = F.mse_loss(x, x_hat, reduction="none")
                 reconstruction_loss = per_item_mse_loss.sum(dim=-1).mean()
                 l0_loss = sae.expected_l0_loss(pre_activation)
-                loss = reconstruction_coefficient * reconstruction_loss + l0_loss
+                loss = (reconstruction_coefficient * reconstruction_loss + l0_loss) / (reconstruction_coefficient + 1)
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -113,7 +109,7 @@ def train(config=None):
         torch.save(sae.state_dict(), sae_save_path)
         wandb.save(sae_save_path)
         artifact = wandb.Artifact(
-            f"sae-{stddev_prior}-{reconstruction_coefficient}-{expansion_factor}-{learning_rate}",
+            f"sae-{wandb_model_name}-{stddev_prior}-{reconstruction_coefficient}-{hidden_dim}-{learning_rate}",
             type="model",
         )
         artifact.add_file(sae_save_path)
