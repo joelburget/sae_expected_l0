@@ -50,6 +50,13 @@ def remove_parallel_component(x, v):
 
 def train(config=None):
     with wandb.init(config=config):
+
+        activation = None
+        def save_activation_hook(module, input, output):
+            nonlocal activation
+            activation = output
+        model.get_submodule(hook_point).register_forward_hook(save_activation_hook)
+
         config = wandb.config
         learning_rate = config.learning_rate
         reconstruction_coefficient = config.reconstruction_coefficient
@@ -65,14 +72,11 @@ def train(config=None):
             try:
                 tokens = input["input_ids"]
                 total_tokens += len(tokens)
-                _, cache = model.run_with_cache(
-                    torch.tensor(tokens, device=device), remove_batch_dim=True
-                )
-                x = cache[hook_point]
+                model(torch.tensor(tokens, device=device), remove_batch_dim=True)
 
-                x_hat, pre_activation = sae(x)
+                x_hat, pre_activation = sae(activation)
 
-                per_item_mse_loss = F.mse_loss(x, x_hat, reduction="none")
+                per_item_mse_loss = F.mse_loss(activation, x_hat, reduction="none")
                 reconstruction_loss = per_item_mse_loss.sum(dim=-1).mean()
                 l0_loss = sae.expected_l0_loss(pre_activation)
                 loss = (reconstruction_coefficient * reconstruction_loss + l0_loss) / (reconstruction_coefficient + 1)
