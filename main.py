@@ -8,9 +8,8 @@ from datasets import load_dataset
 import wandb
 
 # TODO: Gemma-2B
-model_name = "openai-community/gpt2"
+model_name = "gpt2"
 ds_name = "apollo-research/Skylion007-openwebtext-tokenizer-gpt2"
-wandb_model_name = "gpt2"
 # expansion_factor = 8
 hidden_dim = 32_768
 training_tokens = 8_000_000
@@ -109,7 +108,7 @@ def train(config=None):
         torch.save(sae.state_dict(), sae_save_path)
         wandb.save(sae_save_path)
         artifact = wandb.Artifact(
-            f"sae-{wandb_model_name}-{stddev_prior}-{reconstruction_coefficient}-{hidden_dim}-{learning_rate}",
+            f"sae-{model_name}-{stddev_prior}-{reconstruction_coefficient}-{hidden_dim}-{learning_rate}",
             type="model",
         )
         artifact.add_file(sae_save_path)
