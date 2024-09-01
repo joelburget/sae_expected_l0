@@ -72,7 +72,7 @@ def train(config=None):
             try:
                 tokens = input["input_ids"]
                 total_tokens += len(tokens)
-                model(torch.tensor(tokens, device=device), remove_batch_dim=True)
+                model(torch.tensor(tokens, device=device))
 
                 x_hat, pre_activation = sae(activation)
 
