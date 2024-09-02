@@ -88,9 +88,7 @@ def train(config=None):
                     sae.decoder.weight.grad, sae.decoder.weight
                 )
                 optimizer.step()
-                sae.decoder.weight = nn.Parameter(
-                    sae.decoder.weight / sae.decoder.weight.norm(dim=-1, keepdim=True)
-                )
+                sae.decoder.weight.data = sae.decoder.weight / sae.decoder.weight.norm(dim=-1, keepdim=True)
 
                 log_info = {
                     "loss": loss.item(),
