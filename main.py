@@ -10,8 +10,7 @@ import wandb
 # TODO: Gemma-2B
 model_name = "gpt2"
 ds_name = "apollo-research/Skylion007-openwebtext-tokenizer-gpt2"
-# expansion_factor = 8
-hidden_dim = 32_768
+expansion_factor = 8
 training_tokens = 8_000_000
 hook_point = "blocks.6.hook_resid_post"
 
@@ -61,7 +60,7 @@ def train(config=None):
         learning_rate = config.learning_rate
         reconstruction_coefficient = config.reconstruction_coefficient
         stddev_prior = config.stddev_prior
-        # hidden_dim = input_dim * expansion_factor
+        hidden_dim = input_dim * expansion_factor
 
         sae = SparseAutoencoder(input_dim, hidden_dim, stddev_prior)
         sae.to(device)
