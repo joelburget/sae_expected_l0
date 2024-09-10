@@ -1,2 +1,2 @@
-sae-vis >= 0.2.21
+git+https://github.com/jbloomAus/SAEDashboard.git
 jupyterlab >= 4.2

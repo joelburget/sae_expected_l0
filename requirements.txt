@@ -3,3 +3,4 @@ torch >= 2.1
 datasets >= 2.20
 transformers >= 4.42
 wandb >= 0.17.6
+sae-lens
