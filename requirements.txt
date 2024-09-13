@@ -1,4 +1,4 @@
-transformer_lens
+git+https://github.com/TransformerLensOrg/TransformerLens.git
 torch >= 2.1
 datasets >= 2.20
 transformers >= 4.42

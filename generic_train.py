@@ -123,7 +123,9 @@ def remove_parallel_component(x, v):
 
 def train(config: TrainConfig) -> Tuple[HookedTransformer, SparseAutoencoder]:
     reconstruction_coefficient = config.reconstruction_coefficient
-    model = HookedTransformer.from_pretrained(config.model_name, device=device)
+    model = HookedTransformer.from_pretrained(
+        config.model_name, device=device, first_n_layers=config.hook_layer + 1
+    )
     ds = load_dataset(config.dataset_name)
     input_dim = model.cfg.d_model
 
