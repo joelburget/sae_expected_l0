@@ -1,0 +1,16 @@
+program: sweep_gpt2.py
+name: sweep
+method: bayes
+metric:
+  goal: minimize
+  name: loss
+parameters:
+  learning_rate:
+    min: 0.001
+    max: 0.005
+  reconstruction_coefficient:
+    min: 4_000_000.0
+    max: 1_000_000_000.0
+  stddev_prior:
+    min: 0.001
+    max: 0.04

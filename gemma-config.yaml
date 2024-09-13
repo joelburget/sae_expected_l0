@@ -1,4 +1,4 @@
-program: main.py
+program: sweep_gemma.py
 name: sweep
 method: bayes
 metric:
