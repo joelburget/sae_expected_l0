@@ -152,11 +152,11 @@ def train(config: TrainConfig) -> Tuple[HookedTransformer, SparseAutoencoder]:
 
     activation = None
 
-    def save_activation_hook(module, input, output):
+    def save_activation_hook(value: torch.Tensor, hook):
         nonlocal activation
-        activation = output
+        activation = value
+        return value
 
-    model.get_submodule(config.hook_point).register_forward_hook(save_activation_hook)
     hidden_dim = input_dim * config.expansion_factor
 
     sae = SparseAutoencoder(input_dim, hidden_dim, config.stddev_prior)
@@ -167,7 +167,9 @@ def train(config: TrainConfig) -> Tuple[HookedTransformer, SparseAutoencoder]:
     for tokens in enumerate_tokens(config):
         try:
             total_tokens += len(tokens)
-            model(tokens)
+            model.run_with_hooks(
+                tokens, fwd_hooks=[(config.hook_point, save_activation_hook)]
+            )
 
             x_hat, pre_activation = sae(activation)
 
