@@ -51,7 +51,14 @@ class TrainConfig(SweepConfig):
             field.name: getattr(sweep_config, field.name)
             for field in fields(SweepConfig)
         }
-        sweep_dict.update(kwargs)
+        sweep_dict.update(
+            dict(
+                stddev_prior=stddev_prior,
+                learning_rate=learning_rate,
+                reconstruction_coefficient=reconstruction_coefficient,
+                **kwargs,
+            )
+        )
         return cls(**sweep_dict)
 
 
@@ -205,10 +212,9 @@ def sweep(config: SweepConfig):
     with open(config.config_path) as file:
         wandb_sweep_config = yaml.load(file, Loader=yaml.FullLoader)
         with wandb.init(config=wandb_sweep_config):
-            wandb_config = wandb.config
-            learning_rate = wandb_config.learning_rate
-            reconstruction_coefficient = wandb_config.reconstruction_coefficient
-            stddev_prior = wandb_config.stddev_prior
+            learning_rate = wandb.config.learning_rate
+            reconstruction_coefficient = wandb.config.reconstruction_coefficient
+            stddev_prior = wandb.config.stddev_prior
 
             model, sae = train(
                 TrainConfig.from_sweep_config(
