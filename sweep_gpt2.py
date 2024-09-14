@@ -3,6 +3,7 @@ from generic_train import sweep, SweepConfig
 config = SweepConfig(
     model_name="gpt2",
     dataset_name="apollo-research/Skylion007-openwebtext-tokenizer-gpt2",
+    dataset_is_tokenized=True,
     hook_point="blocks.6.hook_resid_post",
     hook_layer=5,
     config_path="gpt2-config.yaml",
