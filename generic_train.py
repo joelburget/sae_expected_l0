@@ -7,7 +7,7 @@ from torch.distributions.normal import Normal
 from transformer_lens import HookedTransformer
 from datasets import load_dataset
 import wandb
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, fields, asdict
 from sae_lens.evals import get_eval_everything_config, run_evals
 from sae_lens.training.activations_store import ActivationsStore
 from sae_lens.sae import SAE as SaeLensSAE, SAEConfig
@@ -144,6 +144,7 @@ def enumerate_tokens(config: SweepConfig) -> Generator[torch.Tensor, None, None]
 
 
 def train(config: TrainConfig) -> Tuple[HookedTransformer, SparseAutoencoder]:
+    wandb.log(asdict(config))
     reconstruction_coefficient = config.reconstruction_coefficient
     model = HookedTransformer.from_pretrained(
         config.model_name, device=device, first_n_layers=config.hook_layer + 1
@@ -196,6 +197,7 @@ def train(config: TrainConfig) -> Tuple[HookedTransformer, SparseAutoencoder]:
                 "reconstruction_loss": reconstruction_loss.item(),
                 "l0_loss": l0_loss.item(),
                 "total_tokens": total_tokens,
+                "max_memory_allocated_mb": torch.cuda.max_memory_allocated() / 1024**2,
             }
             if total_tokens > config.training_tokens:
                 wandb.log(log_info)
