@@ -11,7 +11,6 @@ from dataclasses import dataclass, fields, asdict
 from sae_lens.evals import get_eval_everything_config, run_evals
 from sae_lens.training.activations_store import ActivationsStore
 from sae_lens.sae import SAE as SaeLensSAE, SAEConfig
-from transformers import AutoTokenizer
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 normal = Normal(0, 1)
@@ -208,16 +207,12 @@ def sweep(config: SweepConfig):
     with open(config.config_path) as file:
         wandb_sweep_config = yaml.load(file, Loader=yaml.FullLoader)
         with wandb.init(config=wandb_sweep_config):
-            learning_rate = wandb.config.learning_rate
-            reconstruction_coefficient = wandb.config.reconstruction_coefficient
-            stddev_prior = wandb.config.stddev_prior
-
             model, sae = train(
                 TrainConfig.from_sweep_config(
                     config,
-                    stddev_prior=stddev_prior,
-                    learning_rate=learning_rate,
-                    reconstruction_coefficient=reconstruction_coefficient,
+                    stddev_prior=0.01,
+                    learning_rate=0.001,
+                    reconstruction_coefficient=300_000_000,
                 )
             )
 
