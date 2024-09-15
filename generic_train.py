@@ -164,7 +164,7 @@ def train(config: TrainConfig) -> Tuple[HookedTransformer, SparseAutoencoder]:
     optimizer = torch.optim.Adam(sae.parameters(), lr=config.learning_rate)
 
     i, total_tokens = 0, 0
-    for tokens in enumerate_tokens(config.dataset_name):
+    for tokens in enumerate_tokens(config):
         try:
             total_tokens += len(tokens)
             model.run_with_hooks(
