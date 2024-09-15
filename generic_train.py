@@ -139,7 +139,13 @@ def enumerate_tokens(config: SweepConfig) -> Generator[torch.Tensor, None, None]
     else:
         tokenizer = AutoTokenizer.from_pretrained(config.model_name)
         for input in ds["train"]:
-            tokens = tokenizer(input["text"], return_tensors="pt")["input_ids"]
+            tokens = tokenizer(
+                input["text"],
+                truncation=True,
+                padding="max_length",
+                max_length=8192,
+                return_tensors="pt",
+            )["input_ids"]
             yield tokens.to(device)
 
 
