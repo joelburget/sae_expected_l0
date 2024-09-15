@@ -71,7 +71,7 @@ def eval_sae(sae, model) -> dict[str, Any]:
         n_batches_in_buffer=8,
         device=device,
     )
-    return run_evals(sae, activation_store, model)
+    return run_evals(sae, activation_store, model, eval_config)
 
 
 class SparseAutoencoder(nn.Module):
@@ -164,7 +164,7 @@ def train(config: TrainConfig) -> Tuple[HookedTransformer, SparseAutoencoder]:
     optimizer = torch.optim.Adam(sae.parameters(), lr=config.learning_rate)
 
     i, total_tokens = 0, 0
-    for tokens in enumerate_tokens(config):
+    for tokens in enumerate_tokens(config.dataset_name):
         try:
             total_tokens += len(tokens)
             model.run_with_hooks(
@@ -227,7 +227,7 @@ def sweep(config: SweepConfig):
                 )
             )
 
-            wandb.log(eval_sae(sae, model))
+            wandb.log(eval_sae(sae.to_sae_lens(config), model))
             sae_save_path = "sae.pth"
             torch.save(sae.state_dict(), sae_save_path)
             wandb.save(sae_save_path)
