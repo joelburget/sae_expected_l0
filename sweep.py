@@ -20,7 +20,7 @@ if __name__ == "__main__":
         for training_tokens in [1_000_000, 2_000_000]:
             for expansion_factor in [8, 16]:
                 config = SweepConfig(
-                    model_name="gemma-2-2b",
+                    model_name="google/gemma-2-2b",
                     # "Gemma 1's training data is not public. Use https://huggingface.co/datasets/monology/pile-uncopyrighted for a reasonable approximation."
                     # https://opensourcemechanistic.slack.com/archives/C04T79RAW8Z/p1725371887228009?thread_ts=1725371842.001579&cid=C04T79RAW8Z
                     dataset_name="NeelNanda/pile-10k",
