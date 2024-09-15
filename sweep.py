@@ -7,7 +7,6 @@ if __name__ == "__main__":
                 config = SweepConfig(
                     model_name="gpt2",
                     dataset_name="apollo-research/Skylion007-openwebtext-tokenizer-gpt2",
-                    dataset_is_tokenized=True,
                     hook_point=f"blocks.{layer}.hook_resid_post",
                     hook_layer=layer,
                     config_path="gpt2-config.yaml",
@@ -24,7 +23,6 @@ if __name__ == "__main__":
                     # "Gemma 1's training data is not public. Use https://huggingface.co/datasets/monology/pile-uncopyrighted for a reasonable approximation."
                     # https://opensourcemechanistic.slack.com/archives/C04T79RAW8Z/p1725371887228009?thread_ts=1725371842.001579&cid=C04T79RAW8Z
                     dataset_name="NeelNanda/pile-10k",
-                    dataset_is_tokenized=False,
                     hook_point=f"blocks.{layer}.hook_resid_post",
                     hook_layer=layer,
                     config_path="gemma-config.yaml",
