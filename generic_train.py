@@ -11,6 +11,7 @@ from dataclasses import dataclass, fields, asdict
 from sae_lens.evals import get_eval_everything_config, run_evals
 from sae_lens.training.activations_store import ActivationsStore
 from sae_lens.sae import SAE as SaeLensSAE, SAEConfig
+from transformers import AutoTokenizer
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 normal = Normal(0, 1)
@@ -22,6 +23,7 @@ eval_config = get_eval_everything_config()
 class SweepConfig:
     model_name: str
     dataset_name: str
+    dataset_is_tokenized: bool
     hook_point: str
     hook_layer: int
     config_path: str
@@ -128,10 +130,17 @@ def remove_parallel_component(x, v):
     return x - parallel_component[..., None] * v_normalised
 
 
-def enumerate_tokens(dataset_name: str) -> Generator[torch.Tensor, None, None]:
-    ds = load_dataset(dataset_name)
-    for input in ds["train"]:
-        yield torch.tensor(input["input_ids"], device=device)
+def enumerate_tokens(config: SweepConfig) -> Generator[torch.Tensor, None, None]:
+    ds = load_dataset(config.dataset_name)
+
+    if config.dataset_is_tokenized:
+        for input in ds["train"]:
+            yield torch.tensor(input["input_ids"], device=device)
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(config.model_name)
+        for input in ds["train"]:
+            tokens = tokenizer(input["text"], return_tensors="pt")["input_ids"]
+            yield tokens.to(device)
 
 
 def train(config: TrainConfig) -> Tuple[HookedTransformer, SparseAutoencoder]:
@@ -156,7 +165,7 @@ def train(config: TrainConfig) -> Tuple[HookedTransformer, SparseAutoencoder]:
     optimizer = torch.optim.Adam(sae.parameters(), lr=config.learning_rate)
 
     i, total_tokens = 0, 0
-    for tokens in enumerate_tokens(config.dataset_name):
+    for tokens in enumerate_tokens(config):
         try:
             total_tokens += len(tokens)
             model.run_with_hooks(
