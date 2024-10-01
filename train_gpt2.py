@@ -6,7 +6,7 @@ from generic_train import eval_sae, train, TrainConfig
 
 if __name__ == "__main__":
     with wandb.init():
-        for layer in tqdm.tqdm(range(12)):
+        for layer in tqdm.tqdm(range(3, 10)):
             for hook_point in ["hook_resid_pre", "hook_resid_post"]:
                 config = TrainConfig(
                     model_name="gpt2",
