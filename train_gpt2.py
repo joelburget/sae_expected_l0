@@ -28,7 +28,7 @@ if __name__ == "__main__":
                 torch.save(sae.state_dict(), sae_save_path)
                 wandb.save(sae_save_path)
                 artifact = wandb.Artifact(
-                    f"sae-{config.model_name}-{config.expansion_factor}x",
+                    f"sae-{config.model_name}-{config.expansion_factor}x-l{layer}-{hook_point}",
                     type="model",
                 )
                 artifact.add_file(sae_save_path)
