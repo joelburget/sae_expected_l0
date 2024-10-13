@@ -12,6 +12,7 @@ if __name__ == "__main__":
                     model_name="gpt2",
                     dataset_name="apollo-research/Skylion007-openwebtext-tokenizer-gpt2",
                     dataset_is_tokenized=True,
+                    context_size=1024,
                     hook_point=f"blocks.{layer}.{hook_point}",
                     hook_layer=layer,
                     config_path="gpt2-config.yaml",

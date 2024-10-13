@@ -16,8 +16,7 @@ from transformers import AutoTokenizer
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 normal = Normal(0, 1)
-context_size = 512  # copied from sweep-gpt2.py
-batch_size = 4096  # also copied from sweep-gpt2.py
+batch_size = 4096  # copied from sweep-gpt2.py
 
 eval_config = get_eval_everything_config()
 
@@ -27,6 +26,7 @@ class SweepConfig:
     model_name: str
     dataset_name: str
     dataset_is_tokenized: bool
+    context_size: int
     hook_point: str
     hook_layer: int
     config_path: str
@@ -104,7 +104,7 @@ class SparseAutoencoder(nn.Module):
             activation_fn_str="relu",
             apply_b_dec_to_input=False,
             finetuning_scaling_factor=False,
-            context_size=context_size,  # TODO: what is this? does it matter?
+            context_size=sweep_config.context_size,  # TODO: what is this? does it matter?
             model_name=sweep_config.model_name,
             hook_name=sweep_config.hook_point,
             hook_layer=sweep_config.hook_layer,
@@ -166,7 +166,7 @@ def train(config: TrainConfig) -> Tuple[HookedTransformer, SparseAutoencoder]:
             hook_name=config.hook_point,
             hook_layer=config.hook_layer,
             dataset_path=config.dataset_name,
-            context_size=context_size,
+            context_size=config.context_size,
             is_dataset_tokenized=config.dataset_is_tokenized,
             prepend_bos=True,
             expansion_factor=config.expansion_factor,
