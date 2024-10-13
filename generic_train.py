@@ -11,10 +11,13 @@ from dataclasses import dataclass, fields
 from sae_lens.evals import get_eval_everything_config, run_evals
 from sae_lens.training.activations_store import ActivationsStore
 from sae_lens.sae import SAE as SaeLensSAE, SAEConfig
+from sae_lens.config import LanguageModelSAERunnerConfig
 from transformers import AutoTokenizer
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 normal = Normal(0, 1)
+context_size = 512  # copied from sweep-gpt2.py
+batch_size = 4096  # also copied from sweep-gpt2.py
 
 eval_config = get_eval_everything_config()
 
@@ -101,7 +104,7 @@ class SparseAutoencoder(nn.Module):
             activation_fn_str="relu",
             apply_b_dec_to_input=False,
             finetuning_scaling_factor=False,
-            context_size=1024,  # TODO: what is this? does it matter?
+            context_size=context_size,  # TODO: what is this? does it matter?
             model_name=sweep_config.model_name,
             hook_name=sweep_config.hook_point,
             hook_layer=sweep_config.hook_layer,
@@ -150,27 +153,35 @@ def train(config: TrainConfig) -> Tuple[HookedTransformer, SparseAutoencoder]:
     )
     input_dim = model.cfg.d_model
 
-    activation = None
-
-    def save_activation_hook(value: torch.Tensor, hook):
-        nonlocal activation
-        activation = value
-        return value
-
     hidden_dim = input_dim * config.expansion_factor
 
     sae = SparseAutoencoder(input_dim, hidden_dim, config.stddev_prior)
     sae.to(device)
     optimizer = torch.optim.Adam(sae.parameters(), lr=config.learning_rate)
 
-    i, total_tokens = 0, 0
-    for tokens in enumerate_tokens(config):
-        try:
-            total_tokens += len(tokens)
-            model.run_with_hooks(
-                tokens, fwd_hooks=[(config.hook_point, save_activation_hook)]
-            )
+    activation_store = ActivationsStore.from_config(
+        model,
+        cfg=LanguageModelSAERunnerConfig(
+            model_name=config.model_name,
+            hook_name=config.hook_point,
+            hook_layer=config.hook_layer,
+            dataset_path=config.dataset_name,
+            context_size=context_size,
+            is_dataset_tokenized=config.dataset_is_tokenized,
+            prepend_bos=True,
+            expansion_factor=config.expansion_factor,
+            use_cached_activations=False,
+            d_in=input_dim,
+            training_tokens=config.training_tokens,
+            train_batch_size_tokens=batch_size,
+        ),
+    )
 
+    i, total_tokens = 0, 0
+    while True:
+        try:
+            activation = activation_store.next_batch()[:, 0, :].to(device)
+            total_tokens += batch_size
             x_hat, pre_activation = sae(activation)
 
             per_item_mse_loss = F.mse_loss(activation, x_hat, reduction="none")
@@ -191,13 +202,13 @@ def train(config: TrainConfig) -> Tuple[HookedTransformer, SparseAutoencoder]:
                 dim=-1, keepdim=True
             )
 
-            log_info = {
-                "loss": loss.item(),
-                "reconstruction_loss": reconstruction_loss.item(),
-                "l0_loss": l0_loss.item(),
-                "total_tokens": total_tokens,
-            }
-            if total_tokens > config.training_tokens:
+            log_info = dict(
+                loss=loss.item(),
+                reconstruction_loss=reconstruction_loss.item(),
+                l0_loss=l0_loss.item(),
+                total_tokens=total_tokens,
+            )
+            if total_tokens >= config.training_tokens:
                 wandb.log(log_info)
                 break
             if i % 10 == 0:
