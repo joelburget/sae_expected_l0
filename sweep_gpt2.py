@@ -4,6 +4,7 @@ config = SweepConfig(
     model_name="gpt2",
     dataset_name="apollo-research/Skylion007-openwebtext-tokenizer-gpt2",
     dataset_is_tokenized=True,
+    context_size=1024,
     hook_point="blocks.5.hook_resid_post",
     hook_layer=5,
     config_path="gpt2-config.yaml",
