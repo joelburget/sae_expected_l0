@@ -74,7 +74,8 @@ def eval_sae(sae, model) -> dict[str, Any]:
         n_batches_in_buffer=8,
         device=device,
     )
-    return run_evals(sae, activation_store, model, eval_config)
+    all_metrics, _feature_metrics = run_evals(sae, activation_store, model, eval_config)
+    return all_metrics
 
 
 class SparseAutoencoder(nn.Module):
