@@ -131,3 +131,4 @@ cython_debug/
 
 *-files/
 wandb/
+demo_activations_cache/
