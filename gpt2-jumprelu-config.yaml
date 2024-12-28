@@ -1,0 +1,13 @@
+program: sweep_gpt2_jumprelu.py
+name: sweep
+method: bayes
+metric:
+  goal: minimize
+  name: loss
+parameters:
+  learning_rate:
+    min: 0.001
+    max: 0.005
+  l1_coefficient:
+    min: 0.0001
+    max: 500.0

@@ -1,0 +1,12 @@
+program: sweep_gpt2_topk.py
+name: sweep
+method: bayes
+metric:
+  goal: minimize
+  name: loss
+parameters:
+  learning_rate:
+    min: 0.001
+    max: 0.005
+  k:
+    values: [10, 50, 100, 150, 200]
