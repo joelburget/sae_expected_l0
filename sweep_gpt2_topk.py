@@ -29,6 +29,7 @@ if __name__ == "__main__":
                 train_batch_size_tokens=batch_size,
                 lr=learning_rate,
                 log_to_wandb=True,
+                wandb_project="sae_expected_l0",
                 context_size=gpt2_config.context_size,
             )
             sae = SAETrainingRunner(cfg).run()
