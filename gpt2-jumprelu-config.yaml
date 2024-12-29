@@ -3,7 +3,7 @@ name: sweep
 method: bayes
 metric:
   goal: minimize
-  name: loss
+  name: losses/overall_loss
 parameters:
   learning_rate:
     min: 0.001
