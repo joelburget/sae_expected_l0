@@ -38,7 +38,7 @@ if __name__ == "__main__":
             )
             sae = SAETrainingRunner(cfg).run()
 
-            sae_save_path = "sae.pth"
+            sae_save_path = "jumprelu_sae.pth"
             torch.save(sae.state_dict(), sae_save_path)
             wandb.save(sae_save_path)
             artifact = wandb.Artifact(
