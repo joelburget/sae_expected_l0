@@ -42,7 +42,7 @@ if __name__ == "__main__":
             torch.save(sae.state_dict(), sae_save_path)
             wandb.save(sae_save_path)
             artifact = wandb.Artifact(
-                f"sae-{config.model_name}-topk-{config.expansion_factor}x-lr{learning_rate}",
+                f"sae-{gpt2_config.model_name}-topk-{gpt2_config.expansion_factor}x-lr{learning_rate}",
                 type="model",
             )
             artifact.add_file(sae_save_path)
