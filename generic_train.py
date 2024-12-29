@@ -14,7 +14,13 @@ from sae_lens.sae import SAE as SaeLensSAE, SAEConfig
 from sae_lens.config import LanguageModelSAERunnerConfig
 from transformers import AutoTokenizer
 
-device = "mps" if torch.mps.is_available() else "cuda" if torch.cuda.is_available() else "cpu"
+device = (
+    "mps"
+    if torch.mps.is_available()
+    else "cuda"
+    if torch.cuda.is_available()
+    else "cpu"
+)
 normal = Normal(0, 1)
 batch_size = 4096  # copied from sweep-gpt2.py
 
@@ -248,5 +254,4 @@ def sweep(config: SweepConfig):
                 type="model",
             )
             artifact.add_file(sae_save_path)
-            artifact.save()
-            artifact.wait()
+            wandb.log_artifact(artifact)

@@ -46,5 +46,4 @@ if __name__ == "__main__":
                 type="model",
             )
             artifact.add_file(sae_save_path)
-            artifact.save()
-            artifact.wait()
+            wandb.log_artifact(artifact)
