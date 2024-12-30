@@ -133,3 +133,4 @@ cython_debug/
 wandb/
 demo_activations_cache/
 checkpoints/
+*.pth
