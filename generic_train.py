@@ -45,7 +45,7 @@ class TrainConfig(SweepConfig):
     # We sweep these three params
     stddev_prior: float
     learning_rate: float
-    reconstruction_coefficient: float
+    l0_coefficient: float
 
     @classmethod
     def from_sweep_config(
@@ -53,7 +53,7 @@ class TrainConfig(SweepConfig):
         sweep_config: SweepConfig,
         stddev_prior: float,
         learning_rate: float,
-        reconstruction_coefficient: float,
+        l0_coefficient: float,
         **kwargs,
     ):
         sweep_dict = {
@@ -64,7 +64,7 @@ class TrainConfig(SweepConfig):
             dict(
                 stddev_prior=stddev_prior,
                 learning_rate=learning_rate,
-                reconstruction_coefficient=reconstruction_coefficient,
+                l0_coefficient=l0_coefficient,
                 **kwargs,
             )
         )
@@ -154,7 +154,7 @@ def enumerate_tokens(config: SweepConfig) -> Generator[torch.Tensor, None, None]
 
 
 def train(config: TrainConfig) -> Tuple[HookedTransformer, SparseAutoencoder]:
-    reconstruction_coefficient = config.reconstruction_coefficient
+    l0_coefficient = config.l0_coefficient
     model = HookedTransformer.from_pretrained(
         config.model_name, device=device, first_n_layers=config.hook_layer + 1
     )
@@ -194,9 +194,7 @@ def train(config: TrainConfig) -> Tuple[HookedTransformer, SparseAutoencoder]:
             per_item_mse_loss = F.mse_loss(activation, x_hat, reduction="none")
             reconstruction_loss = per_item_mse_loss.sum(dim=-1).mean()
             l0_loss = sae.expected_l0_loss(pre_activation)
-            loss = (reconstruction_coefficient * reconstruction_loss + l0_loss) / (
-                reconstruction_coefficient + 1
-            )
+            loss = reconstruction_loss + l0_coefficient * l0_loss
 
             optimizer.zero_grad()
             loss.backward()
@@ -233,7 +231,7 @@ def sweep(config: SweepConfig):
         wandb_sweep_config = yaml.load(file, Loader=yaml.FullLoader)
         with wandb.init(config=wandb_sweep_config):
             learning_rate = wandb.config.learning_rate
-            reconstruction_coefficient = wandb.config.reconstruction_coefficient
+            l0_coefficient = wandb.config.l0_coefficient
             stddev_prior = wandb.config.stddev_prior
 
             model, sae = train(
@@ -241,7 +239,7 @@ def sweep(config: SweepConfig):
                     config,
                     stddev_prior=stddev_prior,
                     learning_rate=learning_rate,
-                    reconstruction_coefficient=reconstruction_coefficient,
+                    l0_coefficient=l0_coefficient,
                 )
             )
 
@@ -250,7 +248,7 @@ def sweep(config: SweepConfig):
             torch.save(sae.state_dict(), sae_save_path)
             wandb.save(sae_save_path)
             artifact = wandb.Artifact(
-                f"sae-{config.model_name}-sd{stddev_prior}-rc{reconstruction_coefficient}-{config.expansion_factor}x-lr{learning_rate}",
+                f"sae-{config.model_name}-sd{stddev_prior}-l0c{l0_coefficient}-{config.expansion_factor}x-lr{learning_rate}",
                 type="model",
             )
             artifact.add_file(sae_save_path)
