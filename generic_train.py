@@ -100,7 +100,7 @@ class SparseAutoencoder(nn.Module):
     def expected_l0_loss(self, pre_activation):
         stddevs = self.stddev_prior * torch.sqrt((self.encoder.weight**2).sum(dim=1))
         prob_non_zero = 1 - normal.cdf(-pre_activation / stddevs)
-        return prob_non_zero.sum()
+        return prob_non_zero.sum(dim=-1).mean()
 
     def to_sae_lens(self, sweep_config: SweepConfig):
         d_hidden, d_in = self.encoder.weight.shape
